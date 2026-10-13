@@ -5,6 +5,7 @@ async function request(path, options = {}) {
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...options.headers },
     })
   } catch {
@@ -19,6 +20,11 @@ async function request(path, options = {}) {
   if (response.status === 204) return null
   return response.json()
 }
+
+export const register = (credentials) => request('/auth/register', { method: 'POST', body: JSON.stringify(credentials) })
+export const login = (credentials) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) })
+export const getCurrentUser = () => request('/auth/me')
+export const logout = () => request('/auth/logout', { method: 'POST' })
 
 export function getAppointments(filters = {}) {
   const query = new URLSearchParams()

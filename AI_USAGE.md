@@ -7,7 +7,7 @@
 
 ## AI-assisted implementation
 
-Codex assisted with the initial implementation of the FastAPI and SQLAlchemy backend, Pydantic validation, React dashboard and forms, automated tests, sample data, and documentation. The repository owner should update this record if additional tools are used or if the implementation changes materially.
+Codex assisted with the initial implementation of the FastAPI and SQLAlchemy backend, Pydantic validation, React dashboard, account registration/login, account-scoped appointments, automated tests, sample data, and documentation. The repository owner should update this record if additional tools are used or if the implementation changes materially.
 
 ## Human review checklist
 
@@ -17,6 +17,7 @@ Review each item yourself and mark it only after completing the review:
 - [ ] API request validation and response codes
 - [ ] SQLite / SQLAlchemy create, update, and delete operations
 - [ ] Conflict handling for edits, cancellations, and completed visits
+- [ ] Password hashing, cookie session behavior, and account data isolation
 - [ ] API and frontend error handling
 - [ ] Form interactions, accessibility, and responsive layouts
 - [ ] Test coverage and whether each test matches the intended behavior
@@ -25,12 +26,14 @@ Review each item yourself and mark it only after completing the review:
 ## Corrections made during implementation
 
 - The first bare `pytest` invocation could not import the `app` package in this environment. Running tests as `python -m pytest` from `backend/` correctly sets the package import path. The working command is documented below.
+- An initial logout response failed its TestClient status assertion. Returning an empty response with the route's explicit 204 status corrected it; the authentication tests then passed.
 - No other independently discovered application defects are claimed in this section. Add actual findings here as you review and change the project.
 
 ## Verification observed
 
-- Backend: `cd backend && .venv/bin/python -m pytest -q` — 7 passed (observed during implementation).
+- Backend: `cd backend && .venv/bin/python -m pytest -q` — 9 passed (observed during implementation).
 - Frontend: `cd frontend && npm run build` — production build succeeded (observed during implementation).
+- Cross-account schedule test: account B receives 409 for an overlapping appointment and succeeds exactly 30 minutes later; each account’s appointment list remains private.
 - These are command results, not a claim that every manual checklist item has been completed.
 
 ## AI suggestions versus verified behavior

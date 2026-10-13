@@ -2,6 +2,37 @@ def create(client, payload, **changes):
     return client.post("/api/appointments", json={**payload, **changes})
 
 
+def test_authentication_and_account_data_isolation(client, payload):
+    appointment = create(client, payload)
+    assert appointment.status_code == 201
+
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    with TestClient(app) as second_user:
+        registration = second_user.post("/api/auth/register", json={"username": "second_user", "password": "second-pass-123"})
+        assert registration.status_code == 201
+        assert second_user.get("/api/auth/me").json()["username"] == "second_user"
+        assert second_user.get("/api/appointments").json() == []
+        assert second_user.get(f"/api/appointments/{appointment.json()['id']}").status_code == 404
+
+        # Appointment records are private, but doctor availability is shared across accounts.
+        assert create(second_user, payload).status_code == 409
+        assert create(second_user, payload, appointment_datetime="2030-06-15T10:30:00").status_code == 201
+        assert len(client.get("/api/appointments").json()) == 1
+        assert len(second_user.get("/api/appointments").json()) == 1
+
+    assert client.post("/api/auth/logout").status_code == 204
+    assert client.get("/api/appointments").status_code == 401
+    assert client.post("/api/auth/login", json={"username": "primary_user", "password": "primary-pass-123"}).status_code == 200
+
+
+def test_appointments_require_login(client):
+    client.post("/api/auth/logout")
+    assert client.get("/api/appointments").status_code == 401
+    assert client.get("/api/appointments/stats/summary").status_code == 401
+
+
 def test_create_trims_name_and_defaults_status(client, payload):
     payload.pop("status")
     response = client.post("/api/appointments", json=payload)
