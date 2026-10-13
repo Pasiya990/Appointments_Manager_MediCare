@@ -1,4 +1,4 @@
-# CarePoint — Appointment Management System
+# MediCare — Appointment Management System
 
 A small, local clinic appointment dashboard built for the AI Engineering Intern practical assessment. It demonstrates CRUD operations, a REST API, validation, SQLite persistence, basic scheduling rules, dashboard counts, automated tests, and a responsive React interface. All included names and records are fictional.
 

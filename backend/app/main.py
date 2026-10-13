@@ -14,7 +14,7 @@ if "user_id" not in {column["name"] for column in inspect(engine).get_columns("a
         connection.exec_driver_sql("ALTER TABLE appointments ADD COLUMN user_id INTEGER REFERENCES users(id)")
         connection.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_appointments_user_schedule ON appointments (user_id, doctor, appointment_datetime)")
 
-app = FastAPI(title="CarePoint Appointment Management API", version="1.0.0")
+app = FastAPI(title="MediCare Appointment Management API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],

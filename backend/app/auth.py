@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from .database import get_db
 from .models import User
 
-SESSION_COOKIE = "carepoint_session"
+SESSION_COOKIE = "medicare_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 7
 # Override this local-development key through APP_SECRET_KEY outside the assessment setup.
 SECRET_KEY = os.getenv("APP_SECRET_KEY", "local-assessment-only-change-this-secret-key")
