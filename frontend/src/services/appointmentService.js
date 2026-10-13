@@ -9,7 +9,7 @@ async function request(path, options = {}) {
       headers: { 'Content-Type': 'application/json', ...options.headers },
     })
   } catch {
-    throw new Error('Cannot connect to CarePoint API. Check that the backend is running at http://localhost:8000.')
+    throw new Error('Cannot connect to MediCare API. Check that the backend is running at http://localhost:8000.')
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))

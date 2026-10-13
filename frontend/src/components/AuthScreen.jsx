@@ -24,7 +24,7 @@ export default function AuthScreen({ onAuthenticated }) {
   }
 
   return <main className="auth-page"><section className="auth-card">
-    <a className="brand auth-brand" href="#login"><span className="brand-mark"><HeartPulse size={23} strokeWidth={2.2} /></span><span>care<span>point</span><small>CLINIC MANAGEMENT</small></span></a>
+    <a className="brand auth-brand" href="#login"><span className="brand-mark"><HeartPulse size={23} strokeWidth={2.2} /></span><span>Medi<span>Care</span><small>CLINIC MANAGEMENT</small></span></a>
     <div className="auth-intro"><div className="auth-icon"><LockKeyhole size={20} /></div><h1>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1><p>{mode === 'login' ? 'Sign in to manage your appointments.' : 'Create a private workspace for your appointments.'}</p></div>
     <form className="auth-form" onSubmit={submit}>
       <label className="field-label">Username<input autoComplete="username" minLength="3" maxLength="40" pattern="[a-zA-Z0-9_-]+" required value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Your username" /></label>
@@ -32,7 +32,7 @@ export default function AuthScreen({ onAuthenticated }) {
       {error && <div className="form-error" role="alert">{error}</div>}
       <button className="button button-primary auth-submit" disabled={busy}>{mode === 'login' ? <LogIn size={16} /> : <UserRoundPlus size={16} />}{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
     </form>
-    <p className="auth-switch">{mode === 'login' ? 'New to CarePoint?' : 'Already have an account?'} <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}>{mode === 'login' ? 'Create account' : 'Sign in'}</button></p>
+    <p className="auth-switch">{mode === 'login' ? 'New to MediCare?' : 'Already have an account?'} <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}>{mode === 'login' ? 'Create account' : 'Sign in'}</button></p>
     <div className="auth-footnote">Each account has its own appointment list and statistics.</div>
   </section></main>
 }

@@ -6,7 +6,7 @@ from app.database import Base, SessionLocal, engine
 from app.models import Appointment, User
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--username", required=True, help="Existing CarePoint account that should own the sample records")
+parser.add_argument("--username", required=True, help="Existing MediCare account that should own the sample records")
 args = parser.parse_args()
 
 Base.metadata.create_all(bind=engine)
@@ -14,7 +14,7 @@ session = SessionLocal()
 try:
     user = session.query(User).filter_by(username=args.username).first()
     if user is None:
-        raise SystemExit(f"No account named {args.username!r}. Register that account in CarePoint first.")
+        raise SystemExit(f"No account named {args.username!r}. Register that account in MediCare first.")
 
     samples = [
         Appointment(user_id=user.id, patient_name="Alex Morgan", appointment_datetime=datetime.now().replace(hour=9, minute=0, second=0, microsecond=0) - timedelta(days=2), doctor="Dr. Emily Carter", appointment_type="General Consultation", status="Completed"),

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Activity, Bell, CalendarPlus, ChevronDown, CircleHelp, HeartPulse, LayoutDashboard, Menu, RefreshCw, Settings } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Activity, CalendarPlus, ChevronDown, CircleHelp, HeartPulse, LayoutDashboard, LogOut, Menu, RefreshCw, Settings } from 'lucide-react'
 import DashboardCards from './components/DashboardCards.jsx'
 import AppointmentTable from './components/AppointmentTable.jsx'
 import AppointmentForm from './components/AppointmentForm.jsx'
@@ -22,9 +22,20 @@ export default function App() {
   const [deleteAppointmentItem, setDeleteAppointmentItem] = useState(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const profileMenuRef = useRef(null)
 
   useEffect(() => {
     getCurrentUser().then(setUser).catch(() => setUser(null)).finally(() => setAuthLoading(false))
+  }, [])
+  useEffect(() => {
+    function closeMenuOnOutsideClick(event) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', closeMenuOnOutsideClick)
+    return () => document.removeEventListener('pointerdown', closeMenuOnOutsideClick)
   }, [])
 
   const refresh = useCallback(async () => {
@@ -62,20 +73,20 @@ export default function App() {
   if (!user) return <AuthScreen onAuthenticated={setUser} />
 
   return <div className="app-shell"><aside className={`sidebar ${mobileNavOpen ? 'sidebar-open' : ''}`}>
-    <a className="brand" href="#home"><span className="brand-mark"><HeartPulse size={23} strokeWidth={2.2} /></span><span>care<span>point</span><small>CLINIC MANAGEMENT</small></span></a>
+    <a className="brand" href="#home"><span className="brand-mark"><HeartPulse size={23} strokeWidth={2.2} /></span><span>Medi<span>Care</span><small>CLINIC MANAGEMENT</small></span></a>
     <div className="nav-label">WORKSPACE</div><button className="nav-link active"><LayoutDashboard size={18} />Overview</button>
     <div className="sidebar-note"><div className="sidebar-note-icon"><Activity size={17} /></div><div><strong>Care made simple</strong><span>Manage visits with clarity.</span></div></div>
-    <div className="sidebar-bottom"><button className="nav-link"><CircleHelp size={18} />Help center</button><button className="nav-link" onClick={() => setSettingsOpen(true)}><Settings size={18} />Settings</button><button className="profile-card signout-card" onClick={signOut}><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><div className="profile-info"><strong>{user.username}</strong><span>Sign out</span></div><ChevronDown size={16} /></button></div>
+    <div className="sidebar-bottom"><button className="nav-link"><CircleHelp size={18} />Help center</button><button className="nav-link" onClick={() => setSettingsOpen(true)}><Settings size={18} />Settings</button><div className="profile-card"><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><div className="profile-info"><strong>{user.username}</strong><span>Signed in</span></div></div></div>
   </aside>
   {mobileNavOpen && <button className="mobile-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}
-  <main className="main-area"><header className="topbar"><button className="mobile-menu" onClick={() => setMobileNavOpen(!mobileNavOpen)} aria-label="Toggle navigation"><Menu size={20} /></button><div className="breadcrumb">Workspace <span>/</span> <strong>Overview</strong></div><div className="topbar-right"><span className="today-label">{dateLabel}</span><button className="notification-button" aria-label="Notifications"><Bell size={18} /><i /></button><button className="top-profile signout-top" onClick={signOut}><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><span>{user.username}</span><ChevronDown size={15} /></button></div></header>
-    <div className="content"><div className="page-heading"><div><div className="eyebrow">CAREPOINT PRIVATE WORKSPACE</div><h1>Good day, {user.username} <span>✦</span></h1><p>Here’s what’s happening with your appointments.</p></div><button className="button button-primary add-button" onClick={() => setFormAppointment(null)}><CalendarPlus size={17} />New appointment</button></div>
+  <main className="main-area"><header className="topbar"><button className="mobile-menu" onClick={() => setMobileNavOpen(!mobileNavOpen)} aria-label="Toggle navigation"><Menu size={20} /></button><div className="breadcrumb">Workspace <span>/</span> <strong>Overview</strong></div><div className="topbar-right"><span className="today-label">{dateLabel}</span><div className="account-menu" ref={profileMenuRef}><button className="top-profile" aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((open) => !open)}><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><span>{user.username}</span><ChevronDown size={17} className={profileMenuOpen ? 'chevron-open' : ''} /></button>{profileMenuOpen && <div className="profile-dropdown" role="menu"><button role="menuitem" onClick={() => { setProfileMenuOpen(false); signOut() }}><LogOut size={15} />Logout</button></div>}</div></div></header>
+    <div className="content"><div className="page-heading"><div><div className="eyebrow">MEDICARE PRIVATE WORKSPACE</div><h1>Good day, {user.username} <span>✦</span></h1><p>Here’s what’s happening with your appointments.</p></div><button className="button button-primary add-button" onClick={() => setFormAppointment(null)}><CalendarPlus size={17} />New appointment</button></div>
       <DashboardCards stats={stats} />
       <section className="appointments-card"><div className="section-heading"><div><h2>Appointments</h2><p>View and manage your clinic schedule</p></div><button className="refresh-button" onClick={refresh} disabled={loading}><RefreshCw size={15} className={loading ? 'spin' : ''} />Refresh</button></div>
         <SearchAndFilters filters={filters} onChange={changeFilter} onClear={() => setFilters({ search: '', status: '', doctor: '', appointment_type: '', date: '' })} />
         {loadError ? <div className="error-state"><div><h3>We couldn’t load appointments</h3><p>{loadError}</p><button className="button button-secondary" onClick={refresh}>Try again</button></div></div> : loading ? <div className="loading-state"><span className="spinner" />Loading appointments…</div> : <AppointmentTable appointments={appointments} onEdit={(item) => setFormAppointment(item)} onDelete={setDeleteAppointmentItem} />}
         <div className="table-footer"><span>Showing <strong>{appointments.length}</strong> appointment{appointments.length === 1 ? '' : 's'}</span><span>Updates are saved automatically</span></div>
-      </section><footer className="page-footer">CarePoint Appointment Management <span>•</span> Demo workspace with fictional records</footer>
+      </section><footer className="page-footer">MediCare Appointment Management <span>•</span> Demo workspace with fictional records</footer>
     </div>
   </main>
   {formAppointment !== undefined && <AppointmentForm appointment={formAppointment} onClose={() => setFormAppointment(undefined)} onSave={saveAppointment} />}
