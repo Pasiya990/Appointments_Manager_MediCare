@@ -15,6 +15,7 @@ The project demonstrates full-stack development, understandable code, relational
 - **Database:** SQLite at `backend/data/appointments.db` by default.
 - **Tests:** Pytest, FastAPI TestClient, isolated in-memory SQLite test database.
 - Username/password registration and login with separate appointment workspaces and an HTTP-only signed session cookie.
+- Header account menu with a separate Logout action; clicking the username opens the menu without signing out.
 - Sidebar account settings let signed-in users change their username and password after confirming their current password. New passwords must be 8–128 characters.
 - Create, list, edit, and delete appointments; search patient/doctor; combine status, doctor, type, and date filters; show database-backed statistics; show loading, error, empty, success, and validation states.
 - FastAPI interactive docs at `/docs`.
@@ -37,8 +38,8 @@ backend/
   requirements.txt
 frontend/
   src/App.jsx               dashboard and page-level state
-  src/components/           login, cards, filters, table, form, status, confirm dialog
-  src/services/             centralized Fetch API module
+  src/components/           login, account settings, cards, filters, table, form, status, dialogs
+  src/services/appointmentService.js  centralized Fetch API module
   src/index.css             responsive dashboard styling
   vite.config.js
 AI_USAGE.md
@@ -149,21 +150,22 @@ These are steps to perform; they are not claimed as already completed:
 2. Register two usernames; expect each account to sign in and see an empty, separate workspace.
 3. Open **Settings**, change the username, and confirm it updates in the dashboard. Try a duplicate username and expect an error.
 4. In **Settings**, change the password using the current password. Try a password shorter than 8 characters and expect validation to reject it; sign out and sign in with the new password.
-5. Create an appointment with all fields; expect a success message and a new row.
-6. In account A create a record, then sign out and sign in as account B; expect B cannot see, edit, or delete A’s appointment or see A’s statistics.
-7. While account A has a Scheduled appointment, try booking the same doctor and overlapping time from account B; expect a clear conflict error. Try exactly 30 minutes later; expect success.
-8. Refresh the browser; expect the signed-in session and records to remain.
-9. Search by patient name and doctor name; expect matching rows from the API.
-10. Filter by status, doctor, type, and date individually; expect matching records.
-11. Combine search and multiple filters; expect all conditions to apply together.
-12. Edit a record; expect the existing record to change without creating a duplicate.
-13. Try a booking at a different doctor or exactly 30 minutes later; expect success.
-14. Change an appointment to Cancelled; expect a later overlapping booking to be accepted.
-15. Delete a record and cancel a separate confirmation; expect only the confirmed deletion to remove a row.
-16. Stop and restart the backend; expect prior users and records to remain.
-17. Compare summary cards; expect counts to include only the signed-in account, with today based on backend local date.
-18. Use `/docs` to register/login and then create/retrieve a fictional appointment; expect the documented status and response behavior.
-19. Stop the backend while the page is open; expect a connection error with a retry action rather than a blank page.
+5. Click the username in the header; expect a dropdown with **Logout**. Clicking the username should only open or close the menu.
+6. Create an appointment with all fields; expect a success message and a new row.
+7. In account A create a record, then sign out and sign in as account B; expect B cannot see, edit, or delete A’s appointment or see A’s statistics.
+8. While account A has a Scheduled appointment, try booking the same doctor and overlapping time from account B; expect a clear conflict error. Try exactly 30 minutes later; expect success.
+9. Refresh the browser; expect the signed-in session and records to remain.
+10. Search by patient name and doctor name; expect matching rows from the API.
+11. Filter by status, doctor, type, and date individually; expect matching records.
+12. Combine search and multiple filters; expect all conditions to apply together.
+13. Edit a record; expect the existing record to change without creating a duplicate.
+14. Try a booking at a different doctor or exactly 30 minutes later; expect success.
+15. Change an appointment to Cancelled; expect a later overlapping booking to be accepted.
+16. Delete a record and cancel a separate confirmation; expect only the confirmed deletion to remove a row.
+17. Stop and restart the backend; expect prior users and records to remain.
+18. Compare summary cards; expect counts to include only the signed-in account, with today based on backend local date.
+19. Use `/docs` to register/login and then create/retrieve a fictional appointment; expect the documented status and response behavior.
+20. Stop the backend while the page is open; expect a connection error with a retry action rather than a blank page.
 
 ## Limitations and future improvements
 
