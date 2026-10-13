@@ -25,6 +25,7 @@ export const register = (credentials) => request('/auth/register', { method: 'PO
 export const login = (credentials) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) })
 export const getCurrentUser = () => request('/auth/me')
 export const logout = () => request('/auth/logout', { method: 'POST' })
+export const updateAccount = (data) => request('/auth/account', { method: 'PUT', body: JSON.stringify(data) })
 
 export function getAppointments(filters = {}) {
   const query = new URLSearchParams()

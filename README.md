@@ -15,6 +15,7 @@ The project demonstrates full-stack development, understandable code, relational
 - **Database:** SQLite at `backend/data/appointments.db` by default.
 - **Tests:** Pytest, FastAPI TestClient, isolated in-memory SQLite test database.
 - Username/password registration and login with separate appointment workspaces and an HTTP-only signed session cookie.
+- Sidebar account settings let signed-in users change their username and password after confirming their current password. New passwords must be 8–128 characters.
 - Create, list, edit, and delete appointments; search patient/doctor; combine status, doctor, type, and date filters; show database-backed statistics; show loading, error, empty, success, and validation states.
 - FastAPI interactive docs at `/docs`.
 
@@ -66,6 +67,7 @@ All application endpoints use `/api`.
 | `POST` | `/api/auth/login` | Sign in and set an HTTP-only session cookie |
 | `POST` | `/api/auth/logout` | Clear the session cookie |
 | `GET` | `/api/auth/me` | Return the signed-in username |
+| `PUT` | `/api/auth/account` | Change username and/or password; requires current password; new password must be 8–128 characters |
 
 All `/api/appointments` endpoints below require a valid signed-in session.
 
@@ -130,7 +132,7 @@ cd backend
 .venv/bin/python -m pytest -q
 ```
 
-Tests override the API DB dependency with a separate in-memory SQLite database; they do not touch `backend/data/appointments.db`. The observed run during implementation was **9 passed**, including login, account isolation, and cross-account schedule conflicts. A Starlette/httpx deprecation warning may appear from the installed TestClient dependency versions.
+Tests override the API DB dependency with a separate in-memory SQLite database; they do not touch `backend/data/appointments.db`. The observed run during implementation was **11 passed**, including account updates, password validation, login, account isolation, and cross-account schedule conflicts. A Starlette/httpx deprecation warning may appear from the installed TestClient dependency versions.
 
 ```bash
 cd frontend
@@ -145,21 +147,23 @@ These are steps to perform; they are not claimed as already completed:
 
 1. Start the backend and frontend using the commands above; expect API docs and dashboard to load.
 2. Register two usernames; expect each account to sign in and see an empty, separate workspace.
-3. Create an appointment with all fields; expect a success message and a new row.
-4. In account A create a record, then sign out and sign in as account B; expect B cannot see, edit, or delete A’s appointment or see A’s statistics.
-5. While account A has a Scheduled appointment, try booking the same doctor and overlapping time from account B; expect a clear conflict error. Try exactly 30 minutes later; expect success.
-6. Refresh the browser; expect the signed-in session and records to remain.
-7. Search by patient name and doctor name; expect matching rows from the API.
-8. Filter by status, doctor, type, and date individually; expect matching records.
-9. Combine search and multiple filters; expect all conditions to apply together.
-10. Edit a record; expect the existing record to change without creating a duplicate.
-11. Try a same-account booking at a different doctor or exactly 30 minutes later; expect success.
-12. Change an appointment to Cancelled; expect a later overlapping booking to be accepted.
-13. Delete a record and cancel a separate confirmation; expect only the confirmed deletion to remove a row.
-14. Stop and restart the backend; expect prior users and records to remain.
-15. Compare summary cards; expect counts to include only the signed-in account, with today based on backend local date.
-16. Use `/docs` to register/login and then create/retrieve a fictional appointment; expect the documented status and response behavior.
-17. Stop the backend while the page is open; expect a connection error with a retry action rather than a blank page.
+3. Open **Settings**, change the username, and confirm it updates in the dashboard. Try a duplicate username and expect an error.
+4. In **Settings**, change the password using the current password. Try a password shorter than 8 characters and expect validation to reject it; sign out and sign in with the new password.
+5. Create an appointment with all fields; expect a success message and a new row.
+6. In account A create a record, then sign out and sign in as account B; expect B cannot see, edit, or delete A’s appointment or see A’s statistics.
+7. While account A has a Scheduled appointment, try booking the same doctor and overlapping time from account B; expect a clear conflict error. Try exactly 30 minutes later; expect success.
+8. Refresh the browser; expect the signed-in session and records to remain.
+9. Search by patient name and doctor name; expect matching rows from the API.
+10. Filter by status, doctor, type, and date individually; expect matching records.
+11. Combine search and multiple filters; expect all conditions to apply together.
+12. Edit a record; expect the existing record to change without creating a duplicate.
+13. Try a booking at a different doctor or exactly 30 minutes later; expect success.
+14. Change an appointment to Cancelled; expect a later overlapping booking to be accepted.
+15. Delete a record and cancel a separate confirmation; expect only the confirmed deletion to remove a row.
+16. Stop and restart the backend; expect prior users and records to remain.
+17. Compare summary cards; expect counts to include only the signed-in account, with today based on backend local date.
+18. Use `/docs` to register/login and then create/retrieve a fictional appointment; expect the documented status and response behavior.
+19. Stop the backend while the page is open; expect a connection error with a retry action rather than a blank page.
 
 ## Limitations and future improvements
 
