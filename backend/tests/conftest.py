@@ -1,6 +1,4 @@
 import os
-from pathlib import Path
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -27,6 +25,8 @@ def client():
 
     app.dependency_overrides[get_db] = override_db
     with TestClient(app) as test_client:
+        response = test_client.post("/api/auth/register", json={"username": "primary_user", "password": "primary-pass-123"})
+        assert response.status_code == 201
         yield test_client
     app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)

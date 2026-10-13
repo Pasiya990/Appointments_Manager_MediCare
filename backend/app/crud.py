@@ -12,7 +12,7 @@ ACTIVE_STATUSES = ("Scheduled",)
 
 def find_conflict(db: Session, doctor: str, starts_at: datetime, exclude_id: int | None = None):
     ends_at = starts_at + timedelta(minutes=30)
-    # Half-open intervals make back-to-back bookings valid. Only scheduled bookings block.
+    # Doctor availability is shared across accounts; intervals are half-open.
     statement = select(Appointment).where(
         Appointment.doctor == doctor,
         Appointment.status.in_(ACTIVE_STATUSES),
@@ -24,8 +24,8 @@ def find_conflict(db: Session, doctor: str, starts_at: datetime, exclude_id: int
     return db.scalar(statement.limit(1))
 
 
-def create_appointment(db: Session, data: AppointmentCreate):
-    appointment = Appointment(**data.model_dump())
+def create_appointment(db: Session, user_id: int, data: AppointmentCreate):
+    appointment = Appointment(user_id=user_id, **data.model_dump())
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
@@ -40,12 +40,12 @@ def update_appointment(db: Session, appointment: Appointment, data: AppointmentU
     return appointment
 
 
-def get_appointment(db: Session, appointment_id: int):
-    return db.get(Appointment, appointment_id)
+def get_appointment(db: Session, user_id: int, appointment_id: int):
+    return db.scalar(select(Appointment).where(Appointment.id == appointment_id, Appointment.user_id == user_id))
 
 
-def list_appointments(db: Session, search=None, status=None, doctor=None, appointment_type=None, date_filter: date | None = None):
-    statement = select(Appointment)
+def list_appointments(db: Session, user_id: int, search=None, status=None, doctor=None, appointment_type=None, date_filter: date | None = None):
+    statement = select(Appointment).where(Appointment.user_id == user_id)
     if search:
         term = f"%{search.strip()}%"
         statement = statement.where(or_(Appointment.patient_name.ilike(term), Appointment.doctor.ilike(term)))
@@ -62,7 +62,7 @@ def list_appointments(db: Session, search=None, status=None, doctor=None, appoin
     return list(db.scalars(statement.order_by(Appointment.appointment_datetime, Appointment.id)))
 
 
-def get_stats(db: Session):
+def get_stats(db: Session, user_id: int):
     today = date.today()  # Local date of the machine running the backend.
     start = datetime.combine(today, time.min)
     end = start + timedelta(days=1)
@@ -72,5 +72,5 @@ def get_stats(db: Session):
         func.count(Appointment.id).filter(Appointment.status == "Completed"),
         func.count(Appointment.id).filter(Appointment.status == "Cancelled"),
         func.count(Appointment.id).filter(Appointment.appointment_datetime >= start, Appointment.appointment_datetime < end),
-    )).one()
+    ).where(Appointment.user_id == user_id)).one()
     return dict(zip(("total", "scheduled", "completed", "cancelled", "today"), values))

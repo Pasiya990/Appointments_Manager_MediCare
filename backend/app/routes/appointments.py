@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from .. import crud
+from ..auth import get_current_user
 from ..database import get_db
+from ..models import User
 from ..schemas import AppointmentCreate, AppointmentRead, AppointmentStats, AppointmentUpdate
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
@@ -16,14 +18,14 @@ def ensure_no_conflict(db: Session, doctor: str, starts_at, appointment_status: 
 
 
 @router.post("", response_model=AppointmentRead, status_code=status.HTTP_201_CREATED)
-def create_appointment(data: AppointmentCreate, db: Session = Depends(get_db)):
+def create_appointment(data: AppointmentCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     ensure_no_conflict(db, data.doctor, data.appointment_datetime, data.status)
-    return crud.create_appointment(db, data)
+    return crud.create_appointment(db, user.id, data)
 
 
 @router.get("/stats/summary", response_model=AppointmentStats)
-def appointment_summary(db: Session = Depends(get_db)):
-    return crud.get_stats(db)
+def appointment_summary(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return crud.get_stats(db, user.id)
 
 
 @router.get("", response_model=list[AppointmentRead])
@@ -34,21 +36,22 @@ def list_appointments(
     appointment_type: str | None = Query(default=None),
     date_filter: date | None = Query(default=None, alias="date"),
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    return crud.list_appointments(db, search, status_filter, doctor, appointment_type, date_filter)
+    return crud.list_appointments(db, user.id, search, status_filter, doctor, appointment_type, date_filter)
 
 
 @router.get("/{appointment_id}", response_model=AppointmentRead)
-def get_appointment(appointment_id: int, db: Session = Depends(get_db)):
-    appointment = crud.get_appointment(db, appointment_id)
+def get_appointment(appointment_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    appointment = crud.get_appointment(db, user.id, appointment_id)
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found.")
     return appointment
 
 
 @router.put("/{appointment_id}", response_model=AppointmentRead)
-def update_appointment(appointment_id: int, data: AppointmentUpdate, db: Session = Depends(get_db)):
-    appointment = crud.get_appointment(db, appointment_id)
+def update_appointment(appointment_id: int, data: AppointmentUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    appointment = crud.get_appointment(db, user.id, appointment_id)
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found.")
     ensure_no_conflict(db, data.doctor, data.appointment_datetime, data.status, appointment_id)
@@ -56,8 +59,8 @@ def update_appointment(appointment_id: int, data: AppointmentUpdate, db: Session
 
 
 @router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_appointment(appointment_id: int, db: Session = Depends(get_db)):
-    appointment = crud.get_appointment(db, appointment_id)
+def delete_appointment(appointment_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    appointment = crud.get_appointment(db, user.id, appointment_id)
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found.")
     db.delete(appointment)
