@@ -33,6 +33,44 @@ def test_appointments_require_login(client):
     assert client.get("/api/appointments/stats/summary").status_code == 401
 
 
+def test_account_update_changes_username_and_password(client):
+    changed = client.put("/api/auth/account", json={
+        "current_password": "primary-pass-123",
+        "username": "renamed_user",
+        "new_password": "updated-pass-456",
+    })
+    assert changed.status_code == 200
+    assert changed.json()["username"] == "renamed_user"
+    assert client.get("/api/auth/me").json()["username"] == "renamed_user"
+
+    assert client.put("/api/auth/account", json={
+        "current_password": "wrong-password", "username": "another_name",
+    }).status_code == 401
+    assert client.put("/api/auth/account", json={
+        "current_password": "updated-pass-456", "new_password": "short",
+    }).status_code == 422
+    assert client.put("/api/auth/account", json={
+        "current_password": "updated-pass-456", "username": "!bad name",
+    }).status_code == 422
+
+    client.post("/api/auth/logout")
+    assert client.post("/api/auth/login", json={
+        "username": "renamed_user", "password": "updated-pass-456",
+    }).status_code == 200
+
+
+def test_account_update_rejects_username_owned_by_another_user(client):
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    with TestClient(app) as second_user:
+        second_user.post("/api/auth/register", json={"username": "second_user", "password": "second-pass-123"})
+        response = client.put("/api/auth/account", json={
+            "current_password": "primary-pass-123", "username": "second_user",
+        })
+        assert response.status_code == 409
+
+
 def test_create_trims_name_and_defaults_status(client, payload):
     payload.pop("status")
     response = client.post("/api/appointments", json=payload)

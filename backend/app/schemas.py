@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 DoctorName = Literal[
     "Dr. Emily Carter", "Dr. James Wilson", "Dr. Sophia Anderson",
@@ -61,6 +61,18 @@ class AppointmentStats(BaseModel):
 class AuthCredentials(BaseModel):
     username: str = Field(min_length=3, max_length=40, pattern=r"^[a-zA-Z0-9_-]+$")
     password: str = Field(min_length=8, max_length=128)
+
+
+class AccountUpdate(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    username: str | None = Field(default=None, min_length=3, max_length=40, pattern=r"^[a-zA-Z0-9_-]+$")
+    new_password: str | None = Field(default=None, min_length=8, max_length=128)
+
+    @model_validator(mode="after")
+    def require_a_change(self):
+        if self.username is None and self.new_password is None:
+            raise ValueError("Enter a new username or password.")
+        return self
 
 
 class UserRead(BaseModel):

@@ -6,7 +6,8 @@ import AppointmentForm from './components/AppointmentForm.jsx'
 import ConfirmDialog from './components/ConfirmDialog.jsx'
 import SearchAndFilters from './components/SearchAndFilters.jsx'
 import AuthScreen from './components/AuthScreen.jsx'
-import { createAppointment, deleteAppointment, getAppointments, getStats, getCurrentUser, logout, updateAppointment } from './services/appointmentService.js'
+import { createAppointment, deleteAppointment, getAppointments, getStats, getCurrentUser, logout, updateAccount, updateAppointment } from './services/appointmentService.js'
+import SettingsDialog from './components/SettingsDialog.jsx'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -20,6 +21,7 @@ export default function App() {
   const [formAppointment, setFormAppointment] = useState(undefined)
   const [deleteAppointmentItem, setDeleteAppointmentItem] = useState(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
     getCurrentUser().then(setUser).catch(() => setUser(null)).finally(() => setAuthLoading(false))
@@ -48,6 +50,12 @@ export default function App() {
   async function signOut() {
     try { await logout() } finally { setUser(null); setAppointments([]); setStats(null) }
   }
+  async function saveAccount(changes) {
+    const updatedUser = await updateAccount(changes)
+    setUser(updatedUser)
+    setSettingsOpen(false)
+    setNotice('Account settings updated.')
+  }
   const dateLabel = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date())
 
   if (authLoading) return <main className="auth-page"><div className="loading-state"><span className="spinner" />Checking your session…</div></main>
@@ -57,7 +65,7 @@ export default function App() {
     <a className="brand" href="#home"><span className="brand-mark"><HeartPulse size={23} strokeWidth={2.2} /></span><span>care<span>point</span><small>CLINIC MANAGEMENT</small></span></a>
     <div className="nav-label">WORKSPACE</div><button className="nav-link active"><LayoutDashboard size={18} />Overview</button>
     <div className="sidebar-note"><div className="sidebar-note-icon"><Activity size={17} /></div><div><strong>Care made simple</strong><span>Manage visits with clarity.</span></div></div>
-    <div className="sidebar-bottom"><button className="nav-link"><CircleHelp size={18} />Help center</button><button className="nav-link"><Settings size={18} />Settings</button><button className="profile-card signout-card" onClick={signOut}><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><div className="profile-info"><strong>{user.username}</strong><span>Sign out</span></div><ChevronDown size={16} /></button></div>
+    <div className="sidebar-bottom"><button className="nav-link"><CircleHelp size={18} />Help center</button><button className="nav-link" onClick={() => setSettingsOpen(true)}><Settings size={18} />Settings</button><button className="profile-card signout-card" onClick={signOut}><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><div className="profile-info"><strong>{user.username}</strong><span>Sign out</span></div><ChevronDown size={16} /></button></div>
   </aside>
   {mobileNavOpen && <button className="mobile-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}
   <main className="main-area"><header className="topbar"><button className="mobile-menu" onClick={() => setMobileNavOpen(!mobileNavOpen)} aria-label="Toggle navigation"><Menu size={20} /></button><div className="breadcrumb">Workspace <span>/</span> <strong>Overview</strong></div><div className="topbar-right"><span className="today-label">{dateLabel}</span><button className="notification-button" aria-label="Notifications"><Bell size={18} /><i /></button><button className="top-profile signout-top" onClick={signOut}><div className="profile-avatar">{user.username.slice(0, 2).toUpperCase()}</div><span>{user.username}</span><ChevronDown size={15} /></button></div></header>
@@ -72,6 +80,7 @@ export default function App() {
   </main>
   {formAppointment !== undefined && <AppointmentForm appointment={formAppointment} onClose={() => setFormAppointment(undefined)} onSave={saveAppointment} />}
   {deleteAppointmentItem && <ConfirmDialog appointment={deleteAppointmentItem} onClose={() => setDeleteAppointmentItem(null)} onConfirm={removeAppointment} />}
+  {settingsOpen && <SettingsDialog user={user} onClose={() => setSettingsOpen(false)} onSave={saveAccount} />}
   {notice && <div className="toast" role="status">{notice}</div>}
   </div>
 }

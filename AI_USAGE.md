@@ -7,7 +7,7 @@
 
 ## AI-assisted implementation
 
-Codex assisted with the initial implementation of the FastAPI and SQLAlchemy backend, Pydantic validation, React dashboard, account registration/login, account-scoped appointments, automated tests, sample data, and documentation. The repository owner should update this record if additional tools are used or if the implementation changes materially.
+Codex assisted with the initial implementation of the FastAPI and SQLAlchemy backend, Pydantic validation, React dashboard, account registration/login/settings, account-scoped appointments, automated tests, sample data, and documentation. The repository owner should update this record if additional tools are used or if the implementation changes materially.
 
 ## Human review checklist
 
@@ -18,6 +18,7 @@ Review each item yourself and mark it only after completing the review:
 - [ ] SQLite / SQLAlchemy create, update, and delete operations
 - [ ] Conflict handling for edits, cancellations, and completed visits
 - [ ] Password hashing, cookie session behavior, and account data isolation
+- [ ] Username uniqueness and minimum password length on account updates
 - [ ] API and frontend error handling
 - [ ] Form interactions, accessibility, and responsive layouts
 - [ ] Test coverage and whether each test matches the intended behavior
@@ -31,7 +32,7 @@ Review each item yourself and mark it only after completing the review:
 
 ## Verification observed
 
-- Backend: `cd backend && .venv/bin/python -m pytest -q` — 9 passed (observed during implementation).
+- Backend: `cd backend && .venv/bin/python -m pytest -q` — 11 passed (observed during implementation).
 - Frontend: `cd frontend && npm run build` — production build succeeded (observed during implementation).
 - Cross-account schedule test: account B receives 409 for an overlapping appointment and succeeds exactly 30 minutes later; each account’s appointment list remains private.
 - These are command results, not a claim that every manual checklist item has been completed.

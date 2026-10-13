@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from ..auth import SESSION_COOKIE, SESSION_MAX_AGE, create_session_token, get_current_user, hash_password, verify_password
 from ..database import get_db
 from ..models import User
-from ..schemas import AuthCredentials, UserRead
+from ..schemas import AccountUpdate, AuthCredentials, UserRead
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
@@ -52,4 +52,27 @@ def logout(response: Response):
 
 @router.get("/me", response_model=UserRead)
 def current_user(user: User = Depends(get_current_user)):
+    return user
+
+
+@router.put("/account", response_model=UserRead)
+def update_account(
+    data: AccountUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if not verify_password(data.current_password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Current password is incorrect.")
+
+    if data.username is not None and data.username != user.username:
+        existing = db.scalar(select(User).where(User.username == data.username, User.id != user.id))
+        if existing:
+            raise HTTPException(status_code=409, detail="That username is already registered.")
+        user.username = data.username
+
+    if data.new_password is not None:
+        user.password_hash = hash_password(data.new_password)
+
+    db.commit()
+    db.refresh(user)
     return user
