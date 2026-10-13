@@ -169,7 +169,7 @@ These are steps to perform; they are not claimed as already completed:
 
 ## Limitations and future improvements
 
-The account system is deliberately minimal: no password reset, rate limiting, email verification, roles, or hardened production session/key management. There is no deployment setup, pagination, concurrency locking for simultaneous bookings, or production-grade monitoring. The schema change preserves old unowned rows but does not assign them to accounts. Doctor conflict checks are global across accounts and use a fixed 30-minute duration with host-local wall time. Sample data is optional. Future improvements could include focused component/browser tests, managed sessions and key rotation, rate limiting, migrations, pagination, timezone-aware clinic settings, and production security/privacy review.
+The account system is deliberately minimal: rate limiting, email verification, roles, or hardened production session/key management. There is no deployment setup, pagination, concurrency locking for simultaneous bookings, or production-grade monitoring. The schema change preserves old unowned rows but does not assign them to accounts. Doctor conflict checks are global across accounts and use a fixed 30-minute duration with host-local wall time. Sample data is optional. Future improvements could include focused component/browser tests, managed sessions and key rotation, rate limiting, migrations, pagination, timezone-aware clinic settings, and production security/privacy review.
 
 ## Responsible AI usage
 
